@@ -5,7 +5,7 @@ services:
     buildCommand: |
       apt-get update && apt-get install -y gdal-bin libgdal-dev
       pip install -r requirements.txt
-    startCommand: gunicorn foodfinder.wsgi:application
+    startCommand: gunicorn FoodFinder.wsgi:application
     envVars:
       - key: DATABASE_URL
         value: postgresql://postgres.zneyzvzkrfbjfzrqonwm:Qk8Cxh85R5m5zMRw@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres
