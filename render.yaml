@@ -5,17 +5,9 @@ services:
     buildCommand: |
       apt-get update && apt-get install -y gdal-bin libgdal-dev
       pip install -r requirements.txt
-      python manage.py makemigrations
-      python manage.py migrate
       python manage.py collectstatic --noinput
-      python manage.py createsuperuser --noinput
     startCommand: gunicorn FoodFinder.wsgi:application
     envVars:
       - key: DATABASE_URL
-        value: postgresql://postgres.cykmpvveglgbhtaazave:Zbn.V!#F9eKHHGB@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres
-      - key: DJANGO_SUPERUSER_USERNAME
-        value: admin
-      - key: DJANGO_SUPERUSER_PASSWORD
-        value: Arka19052001@Karmoker
-      - key: DJANGO_SUPERUSER_EMAIL
-        value: karmokerarka@gmail.com
+        value: postgresql://postgres.fycwhheieewnjtslzaaj:Zbn.V!#F9eKHHGB@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres
+        
