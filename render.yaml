@@ -6,6 +6,7 @@ services:
       apt-get update && apt-get install -y gdal-bin libgdal-dev
       pip install -r requirements.txt
       python manage.py collectstatic --noinput
+      python manage.py migrate
     startCommand: gunicorn FoodFinder.wsgi:application
     envVars:
       - key: DATABASE_URL
