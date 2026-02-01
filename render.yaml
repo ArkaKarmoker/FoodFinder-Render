@@ -9,4 +9,4 @@ services:
     startCommand: gunicorn FoodFinder.wsgi:application
     envVars:
       - key: DATABASE_URL
-        value: postgresql://postgres.zneyzvzkrfbjfzrqonwm:Qk8Cxh85R5m5zMRw@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres
+        value: postgresql://postgres.cykmpvveglgbhtaazave:Zbn.V!#F9eKHHGB@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres
