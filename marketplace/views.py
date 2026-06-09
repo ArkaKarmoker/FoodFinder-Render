@@ -11,16 +11,22 @@ from .models import Cart
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 
-from django.contrib.gis.geos import GEOSGeometry
-from django.contrib.gis.measure import D  # ``D`` is a shortcut for ``Distance``
-from django.contrib.gis.db.models.functions import Distance
+from django.db.models import F, Func, FloatField, Value
+
+class LLEarth(Func):
+    function = 'll_to_earth'
+    output_field = FloatField()
+
+class EarthDistance(Func):
+    function = 'earth_distance'
+    output_field = FloatField()
 
 from datetime import date, datetime
 from orders.forms import OrderForm
 
 
 def marketplace(request):
-    vendors = Vendor.objects.filter(is_approved=True, user__is_active=True)
+    vendors = Vendor.objects.filter(is_approved=True, user__is_active=True).select_related('user', 'user_profile')
     vendor_count = vendors.count()
     context = {
         'vendors': vendors,
@@ -161,18 +167,19 @@ def search(request):
 
         vendors = Vendor.objects.filter(
             Q(id__in=fetch_vendors_by_fooditems) | Q(vendor_name__icontains=keyword, is_approved=True,
-                                                     user__is_active=True))
+                                                     user__is_active=True)).select_related('user', 'user_profile')
         if latitude and longitude and radius:
-            pnt = GEOSGeometry('POINT(%s %s)' % (longitude, latitude))
+            radius_meters = float(radius) * 1000
 
-            vendors = Vendor.objects.filter(
-                Q(id__in=fetch_vendors_by_fooditems) | Q(vendor_name__icontains=keyword, is_approved=True,
-                                                         user__is_active=True),
-                user_profile__location__distance_lte=(pnt, D(km=radius))
-                ).annotate(distance=Distance("user_profile__location", pnt)).order_by("distance")
+            vendors = vendors.annotate(
+                distance_meters=EarthDistance(
+                    LLEarth(Value(float(latitude)), Value(float(longitude))),
+                    LLEarth(F('user_profile__latitude'), F('user_profile__longitude'))
+                )
+            ).filter(distance_meters__lte=radius_meters).order_by("distance_meters")
 
             for v in vendors:
-                v.kms = round(v.distance.km, 1)
+                v.kms = round(v.distance_meters / 1000.0, 1) if v.distance_meters is not None else 0
         vendor_count = vendors.count()
         context = {
             'vendors': vendors,

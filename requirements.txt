@@ -3,7 +3,6 @@ certifi==2024.8.30
 charset-normalizer==3.4.0
 Django==5.1.2
 gunicorn==23.0.0
-GDAL==3.6.2
 idna==3.10
 pillow==11.0.0
 psycopg==3.2.3

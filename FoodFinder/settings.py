@@ -45,7 +45,6 @@ INSTALLED_APPS = [
     'vendor',
     'menu',
     'marketplace',
-    'django.contrib.gis',
     'customers',
     'orders',
 ]
@@ -102,14 +101,14 @@ WSGI_APPLICATION = 'FoodFinder.wsgi.application'
 
 DATABASES = {
     'default': {
-        # 'ENGINE': 'django.db.backends.postgresql',
-        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'ENGINE': 'django.db.backends.postgresql',
         'NAME': config('DB_NAME'),
         'USER': config('DB_USER'),
         'PASSWORD': config('DB_PASSWORD'),
         'HOST': config('DB_HOST'),
         'PORT': config('DB_PORT', default='5432'),
         'OPTIONS': {'sslmode': 'require'},  # Added for Supabase compatibility
+        'CONN_MAX_AGE': 600,  # Added connection pooling
     }
 }
 

@@ -3,9 +3,15 @@ from django.http import HttpResponse
 
 from vendor.models import Vendor
 
-from django.contrib.gis.geos import GEOSGeometry
-from django.contrib.gis.measure import D # ``D`` is a shortcut for ``Distance``
-from django.contrib.gis.db.models.functions import Distance
+from django.db.models import F, Func, FloatField, Value
+
+class LLEarth(Func):
+    function = 'll_to_earth'
+    output_field = FloatField()
+
+class EarthDistance(Func):
+    function = 'earth_distance'
+    output_field = FloatField()
 
 
 def get_or_set_current_location(request):
@@ -25,15 +31,20 @@ def get_or_set_current_location(request):
 
 def home(request):
     if get_or_set_current_location(request) is not None:
+        lng, lat = get_or_set_current_location(request)
+        radius_meters = 1000 * 1000 # 1000 km radius
 
-        pnt = GEOSGeometry('POINT(%s %s)' % (get_or_set_current_location(request)))
-
-        vendors = Vendor.objects.filter(user_profile__location__distance_lte=(pnt, D(km=1000))).annotate(distance=Distance("user_profile__location", pnt)).order_by("distance")
+        vendors = Vendor.objects.filter(is_approved=True, user__is_active=True).select_related('user', 'user_profile').annotate(
+            distance_meters=EarthDistance(
+                LLEarth(Value(float(lat)), Value(float(lng))),
+                LLEarth(F('user_profile__latitude'), F('user_profile__longitude'))
+            )
+        ).filter(distance_meters__lte=radius_meters).order_by("distance_meters")
 
         for v in vendors:
-            v.kms = round(v.distance.km, 1)
+            v.kms = round(v.distance_meters / 1000.0, 1) if v.distance_meters is not None else 0
     else:
-        vendors = Vendor.objects.filter(is_approved=True, user__is_active=True)[:8]
+        vendors = Vendor.objects.filter(is_approved=True, user__is_active=True).select_related('user', 'user_profile')[:8]
     context = {
         'vendors': vendors,
     }
